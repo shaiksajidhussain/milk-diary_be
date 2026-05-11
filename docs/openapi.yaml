@@ -1,0 +1,39 @@
+openapi: 3.0.3
+info:
+  title: Dairy Milk Collection Management API
+  version: 1.0.0
+servers:
+  - url: http://localhost:4000/api
+paths:
+  /auth/login:
+    post:
+      summary: Admin login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+  /farmers:
+    get:
+      summary: List farmers (search, filters, pagination)
+    post:
+      summary: Create farmer
+  /collections:
+    post:
+      summary: Record milk collection
+    get:
+      summary: List collections
+  /collections/summary/daily:
+    get:
+      summary: Daily collections summary
+  /collections/summary/monthly:
+    get:
+      summary: Monthly collections summary
+  /dashboard/stats:
+    get:
+      summary: Dashboard KPIs
