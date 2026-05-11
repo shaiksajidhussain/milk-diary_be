@@ -1,22 +1,19 @@
-import express from 'express'
-import cors from 'cors'
+import 'dotenv/config'
+import app from './app.js'
+import { env } from './config/env.js'
+import { logger } from './utils/logger.js'
+import { prisma } from './prisma/client.js'
 
-const app = express()
-
-app.use(
-cors({
-origin: [
-'http://localhost:5173',
-'https://milk-diary-fe.vercel.app',
-],
-methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-allowedHeaders: ['Content-Type', 'Authorization'],
-credentials: true,
+const server = app.listen(env.port, () => {
+  logger.info(`API listening on http://localhost:${env.port}`)
 })
-)
 
-app.options('*', cors())
+async function shutdown(signal) {
+  logger.info(`${signal} received, shutting down…`)
+  server.close(() => logger.info('HTTP server closed'))
+  await prisma.$disconnect()
+  process.exit(0)
+}
 
-app.use(express.json())
-
-export default app
+process.on('SIGINT', () => shutdown('SIGINT'))
+process.on('SIGTERM', () => shutdown('SIGTERM'))

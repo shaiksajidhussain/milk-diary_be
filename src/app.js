@@ -13,14 +13,18 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
   'http://127.0.0.1:5173',
-  ...(process.env.FRONTEND_ORIGIN ? [process.env.FRONTEND_ORIGIN] : []),
+  'https://milk-diary-fe.vercel.app',
+  /\.vercel\.app$/,
+  ...(process.env.FRONTEND_ORIGIN ? process.env.FRONTEND_ORIGIN.split(',').map((s) => s.trim()) : []),
 ]
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      // allow requests with no origin (curl, Postman, mobile apps)
-      if (!origin || allowedOrigins.includes(origin)) return cb(null, true)
+      if (!origin) return cb(null, true)
+      if (allowedOrigins.some((rule) => (rule instanceof RegExp ? rule.test(origin) : rule === origin))) {
+        return cb(null, true)
+      }
       cb(new Error(`CORS: origin ${origin} not allowed`))
     },
     credentials: true,
@@ -37,6 +41,18 @@ app.use(
 
 app.get('/health', (_req, res) => {
   res.json({ ok: true, service: 'milk-diary-api', env: env.nodeEnv })
+})
+
+app.get('/', (_req, res) => {
+  res.json({
+    ok: true,
+    service: 'milk-diary-api',
+    docs: 'Use /api/* routes (e.g. POST /api/auth/login). Health: GET /health',
+  })
+})
+
+app.get('/favicon.ico', (_req, res) => {
+  res.status(204).end()
 })
 
 app.use('/api', routes)
