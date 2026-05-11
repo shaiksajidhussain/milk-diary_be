@@ -10,6 +10,12 @@ export const createCollectionRules = [
     .isIn(['Morning', 'Evening'])
     .withMessage('Session must be Morning or Evening'),
   body('collectedAt').optional().isISO8601().withMessage('collectedAt must be ISO-8601 datetime'),
+  body('scalePhotoDataUrl')
+    .optional({ checkFalsy: true })
+    .isString()
+    .isLength({ max: 500000 })
+    .matches(/^data:image\/(jpeg|jpg|png|webp);base64,/i)
+    .withMessage('scalePhotoDataUrl must be a base64 data:image URL under 500k characters'),
 ]
 
 export const collectionIdParam = [param('id').isUUID().withMessage('Invalid collection id')]

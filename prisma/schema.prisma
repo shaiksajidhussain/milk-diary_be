@@ -46,13 +46,15 @@ model Farmer {
 }
 
 model MilkCollection {
-  id          String            @id @default(uuid())
-  farmerId    String            @map("farmer_id")
-  farmer      Farmer            @relation(fields: [farmerId], references: [id], onDelete: Cascade)
-  weight      Decimal           @db.Decimal(12, 2)
-  session     CollectionSession
-  collectedAt DateTime          @default(now()) @map("collected_at")
-  createdAt   DateTime          @default(now()) @map("created_at")
+  id                  String            @id @default(uuid())
+  farmerId            String            @map("farmer_id")
+  farmer              Farmer            @relation(fields: [farmerId], references: [id], onDelete: Cascade)
+  weight              Decimal           @db.Decimal(12, 2)
+  session             CollectionSession
+  collectedAt         DateTime          @default(now()) @map("collected_at")
+  createdAt           DateTime          @default(now()) @map("created_at")
+  /** Optional JPEG/PNG data URL of the weighing machine display (client-resized). */
+  scalePhotoDataUrl   String?           @map("scale_photo_data_url") @db.Text
 
   @@index([farmerId])
   @@index([collectedAt])

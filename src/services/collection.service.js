@@ -5,7 +5,7 @@ import { parsePagination, paginationMeta } from '../utils/pagination.js'
 import { deriveSessionFromTime } from '../utils/session.js'
 import { getDayBounds, getMonthBounds } from '../utils/dateBounds.js'
 
-function mapCollection(row) {
+function mapCollection(row, { list = false } = {}) {
   if (!row) return row
   const base = {
     id: row.id,
@@ -14,6 +14,11 @@ function mapCollection(row) {
     session: row.session,
     collectedAt: row.collectedAt,
     createdAt: row.createdAt,
+  }
+  if (list) {
+    base.hasScalePhoto = Boolean(row.scalePhotoDataUrl)
+  } else {
+    base.scalePhotoDataUrl = row.scalePhotoDataUrl ?? null
   }
   if (row.farmer) {
     base.farmer = {
@@ -26,7 +31,13 @@ function mapCollection(row) {
   return base
 }
 
-export async function createCollection({ farmerId, weight, session, collectedAt }) {
+export async function createCollection({
+  farmerId,
+  weight,
+  session,
+  collectedAt,
+  scalePhotoDataUrl,
+}) {
   const farmer = await prisma.farmer.findUnique({ where: { id: farmerId } })
   if (!farmer) throw new ApiError(404, 'Farmer not found')
 
@@ -40,12 +51,13 @@ export async function createCollection({ farmerId, weight, session, collectedAt 
       weight: new Prisma.Decimal(weight),
       session: resolvedSession,
       collectedAt: at,
+      ...(scalePhotoDataUrl ? { scalePhotoDataUrl } : {}),
     },
     include: {
       farmer: { select: { id: true, farmerCode: true, name: true, village: true } },
     },
   })
-  return mapCollection(created)
+  return mapCollection(created, { list: false })
 }
 
 export async function listCollections(query) {
@@ -77,7 +89,7 @@ export async function listCollections(query) {
   ])
 
   return {
-    items: rows.map(mapCollection),
+    items: rows.map((r) => mapCollection(r, { list: true })),
     meta: paginationMeta({ page, limit, total }),
   }
 }
@@ -90,7 +102,7 @@ export async function getCollectionById(id) {
     },
   })
   if (!row) throw new ApiError(404, 'Collection not found')
-  return mapCollection(row)
+  return mapCollection(row, { list: false })
 }
 
 export async function dailySummary(dateStr) {
@@ -134,7 +146,7 @@ export async function dailySummary(dateStr) {
       count: eveningAgg._count,
       liters: Number(eveningAgg._sum.weight || 0),
     },
-    items: rows.map(mapCollection),
+    items: rows.map((r) => mapCollection(r, { list: true })),
   }
 }
 
@@ -182,7 +194,7 @@ export async function monthlySummary(year, month, query) {
       morningLiters: Number(morningAgg._sum.weight || 0),
       eveningLiters: Number(eveningAgg._sum.weight || 0),
     },
-    items: rows.map(mapCollection),
+    items: rows.map((r) => mapCollection(r, { list: true })),
     meta: paginationMeta({ page, limit, total }),
   }
 }
@@ -207,7 +219,7 @@ export async function farmerHistory(farmerId, query) {
 
   return {
     farmerId,
-    items: rows.map(mapCollection),
+    items: rows.map((r) => mapCollection(r, { list: true })),
     meta: paginationMeta({ page, limit, total }),
   }
 }
