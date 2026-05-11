@@ -1,18 +1,18 @@
-import { env } from './config/env.js'
-import app from './app.js'
-import { prisma } from './prisma/client.js'
-import { logger } from './utils/logger.js'
+import express from 'express'
+import cors from 'cors'
 
-const server = app.listen(env.port, () => {
-  logger.info(`API listening on http://localhost:${env.port}`)
+const app = express()
+
+app.use(
+cors({
+origin: [
+'http://localhost:5173',
+'https://milk-diary-fe.vercel.app'
+],
+credentials: true,
 })
+)
 
-async function shutdown(signal) {
-  logger.info(`${signal} received, shutting down…`)
-  server.close(() => logger.info('HTTP server closed'))
-  await prisma.$disconnect()
-  process.exit(0)
-}
+app.use(express.json())
 
-process.on('SIGINT', () => shutdown('SIGINT'))
-process.on('SIGTERM', () => shutdown('SIGTERM'))
+export default app
