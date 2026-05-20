@@ -4,8 +4,8 @@ const mobileRegex = /^(\+91[\s-]?)?[6-9]\d{9}$/
 
 const atLeastOneUpdate = check().custom((_value, { req }) => {
   const b = req.body || {}
-  if (!['name', 'mobile', 'village', 'status'].some((k) => b[k] !== undefined)) {
-    throw new Error('Provide at least one of: name, mobile, village, status')
+  if (!['name', 'mobile', 'email', 'village', 'status'].some((k) => b[k] !== undefined)) {
+    throw new Error('Provide at least one of: name, mobile, email, village, status')
   }
   return true
 })
@@ -18,6 +18,12 @@ export const createFarmerRules = [
     .matches(mobileRegex)
     .withMessage('Enter a valid Indian mobile (10 digits, optional +91)'),
   body('village').trim().notEmpty().isLength({ max: 120 }).withMessage('Village is required'),
+  body('email')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isEmail()
+    .withMessage('Enter a valid farmer email')
+    .normalizeEmail(),
   body('status')
     .optional()
     .isIn(['active', 'inactive'])
@@ -29,6 +35,12 @@ export const updateFarmerRules = [
   atLeastOneUpdate,
   body('name').optional().trim().notEmpty().isLength({ max: 120 }),
   body('mobile').optional().trim().matches(mobileRegex).withMessage('Invalid mobile number'),
+  body('email')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isEmail()
+    .withMessage('Invalid email')
+    .normalizeEmail(),
   body('village').optional().trim().notEmpty().isLength({ max: 120 }),
   body('status').optional().isIn(['active', 'inactive']),
 ]

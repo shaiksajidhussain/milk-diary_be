@@ -33,6 +33,7 @@ model Farmer {
   farmerCode  String           @unique @map("farmer_code")
   name        String
   mobile      String
+  email       String?
   village     String
   qrCode      String           @unique @map("qr_code")
   status      FarmerStatus     @default(active)

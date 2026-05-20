@@ -9,6 +9,7 @@ import {
   monthlySummaryQuery,
   farmerHistoryParam,
   farmerHistoryQuery,
+  sharePhotoEmailRules,
 } from '../validators/collection.validator.js'
 import * as collectionController from '../controllers/collection.controller.js'
 
@@ -28,6 +29,12 @@ router.get(
 
 router.post('/', createCollectionRules, validateRequest, collectionController.create)
 router.get('/', listCollectionsQuery, validateRequest, collectionController.list)
+router.post(
+  '/:id/share-photo-email',
+  sharePhotoEmailRules,
+  validateRequest,
+  collectionController.sharePhotoEmail,
+)
 router.get('/:id', collectionIdParam, validateRequest, collectionController.getById)
 
 export default router

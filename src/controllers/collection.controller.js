@@ -1,6 +1,7 @@
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { sendSuccess, sendCreated } from '../utils/response.js'
 import * as collectionService from '../services/collection.service.js'
+import * as collectionMailService from '../services/collection.mail.service.js'
 
 export const create = asyncHandler(async (req, res) => {
   const row = await collectionService.createCollection(req.body)
@@ -28,6 +29,17 @@ export const monthly = asyncHandler(async (req, res) => {
   const month = Number(req.query.month)
   const data = await collectionService.monthlySummary(year, month, req.query)
   return sendSuccess(res, { data })
+})
+
+export const sharePhotoEmail = asyncHandler(async (req, res) => {
+  const result = await collectionMailService.shareCollectionPhotoByEmail(
+    req.params.id,
+    req.body.toEmail,
+  )
+  return sendSuccess(res, {
+    data: result,
+    message: `Scale photo emailed to ${result.to}`,
+  })
 })
 
 export const farmerHistory = asyncHandler(async (req, res) => {

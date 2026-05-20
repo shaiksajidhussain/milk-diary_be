@@ -21,6 +21,7 @@ function mapFarmer(f) {
     farmerCode: f.farmerCode,
     name: f.name,
     mobile: f.mobile,
+    email: f.email ?? null,
     village: f.village,
     qrCode: f.qrCode,
     status: f.status,
@@ -28,7 +29,7 @@ function mapFarmer(f) {
   }
 }
 
-export async function createFarmer({ name, mobile, village, status = 'active' }) {
+export async function createFarmer({ name, mobile, email, village, status = 'active' }) {
   const farmer = await prisma.$transaction(async (tx) => {
     const n = await nextFarmerNumber(tx)
     const farmerCode = `FR-${n}`
@@ -39,6 +40,7 @@ export async function createFarmer({ name, mobile, village, status = 'active' })
         qrCode,
         name,
         mobile,
+        email: email?.trim() || null,
         village,
         status,
       },
@@ -60,6 +62,7 @@ export async function listFarmers(query) {
         { name: { contains: q, mode: 'insensitive' } },
         { farmerCode: { contains: q, mode: 'insensitive' } },
         { mobile: { contains: q } },
+        { email: { contains: q, mode: 'insensitive' } },
         { village: { contains: q, mode: 'insensitive' } },
         { qrCode: { contains: q, mode: 'insensitive' } },
       ],
@@ -93,7 +96,7 @@ export async function getFarmerById(id) {
 
 export async function updateFarmer(id, payload) {
   await getFarmerById(id)
-  const hasField = ['name', 'mobile', 'village', 'status'].some((k) => payload[k] !== undefined)
+  const hasField = ['name', 'mobile', 'email', 'village', 'status'].some((k) => payload[k] !== undefined)
   if (!hasField) {
     throw new ApiError(400, 'No updatable fields provided')
   }
@@ -103,6 +106,9 @@ export async function updateFarmer(id, payload) {
       data: {
         ...(payload.name !== undefined ? { name: payload.name } : {}),
         ...(payload.mobile !== undefined ? { mobile: payload.mobile } : {}),
+        ...(payload.email !== undefined
+          ? { email: payload.email?.trim() ? payload.email.trim() : null }
+          : {}),
         ...(payload.village !== undefined ? { village: payload.village } : {}),
         ...(payload.status !== undefined ? { status: payload.status } : {}),
       },

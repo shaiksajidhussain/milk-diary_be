@@ -23,6 +23,7 @@ export async function loginAdmin({ email, password }) {
 
   return {
     token,
+    expiresIn: env.jwtExpiresIn,
     admin: {
       id: admin.id,
       name: admin.name,

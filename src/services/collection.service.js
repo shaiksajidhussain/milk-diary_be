@@ -25,6 +25,7 @@ function mapCollection(row, { list = false } = {}) {
       id: row.farmer.id,
       farmerCode: row.farmer.farmerCode,
       name: row.farmer.name,
+      email: row.farmer.email ?? null,
       village: row.farmer.village,
     }
   }
@@ -80,7 +81,9 @@ export async function listCollections(query) {
     prisma.milkCollection.findMany({
       where,
       include: {
-        farmer: { select: { id: true, farmerCode: true, name: true, village: true } },
+        farmer: {
+          select: { id: true, farmerCode: true, name: true, email: true, village: true },
+        },
       },
       orderBy: { collectedAt: 'desc' },
       skip,
@@ -98,7 +101,9 @@ export async function getCollectionById(id) {
   const row = await prisma.milkCollection.findUnique({
     where: { id },
     include: {
-      farmer: { select: { id: true, farmerCode: true, name: true, mobile: true, village: true } },
+      farmer: {
+        select: { id: true, farmerCode: true, name: true, mobile: true, email: true, village: true },
+      },
     },
   })
   if (!row) throw new ApiError(404, 'Collection not found')

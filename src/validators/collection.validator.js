@@ -20,6 +20,16 @@ export const createCollectionRules = [
 
 export const collectionIdParam = [param('id').isUUID().withMessage('Invalid collection id')]
 
+export const sharePhotoEmailRules = [
+  ...collectionIdParam,
+  body('toEmail')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isEmail()
+    .withMessage('toEmail must be a valid email')
+    .normalizeEmail(),
+]
+
 export const listCollectionsQuery = [
   query('page').optional().isInt({ min: 1 }).toInt(),
   query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
