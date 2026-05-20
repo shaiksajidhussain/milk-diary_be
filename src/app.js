@@ -14,6 +14,8 @@ const allowedOrigins = [
   'http://localhost:4173',
   'http://127.0.0.1:5173',
   'https://milk-diary-fe.vercel.app',
+  'https://kovamall.vercel.app',
+  'http://kovamall.vercel.app',
   /\.vercel\.app$/,
   ...(process.env.FRONTEND_ORIGIN ? process.env.FRONTEND_ORIGIN.split(',').map((s) => s.trim()) : []),
 ]
