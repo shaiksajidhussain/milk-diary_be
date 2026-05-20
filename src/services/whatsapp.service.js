@@ -178,18 +178,25 @@ export async function startWhatsAppClient({ force = false } = {}) {
     const chromePath = resolveChromeExecutable(env.chromeExecutablePath)
     if (!chromePath) {
       throw new Error(
-        'Chrome not found. Install Google Chrome, or set CHROME_EXECUTABLE_PATH in Backend/.env, or run: npx puppeteer browsers install chrome',
+        'Chrome not found. Set CHROME_EXECUTABLE_PATH in Backend/.env, install Google Chrome, or run: npx puppeteer browsers install chrome',
       )
     }
 
     logger.info(`WhatsApp: using Chrome at ${chromePath}`)
 
     const waClient = new Client({
-      authStrategy: new LocalAuth({ dataPath: AUTH_PATH }),
+      authStrategy: new LocalAuth({
+        dataPath: AUTH_PATH,
+        clientId: 'main',
+      }),
       puppeteer: {
         headless: true,
         executablePath: chromePath,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+        ],
       },
     })
 
