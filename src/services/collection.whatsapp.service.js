@@ -1,8 +1,8 @@
 import { prisma } from '../prisma/client.js'
 import { ApiError } from '../utils/ApiError.js'
-import { sendScalePhotoEmail } from './mail.service.js'
+import { sendScalePhotoWhatsApp } from './whatsapp.service.js'
 
-export async function shareCollectionPhotoByEmail(collectionId, toEmail) {
+export async function shareCollectionPhotoByWhatsApp(collectionId, toMobile) {
   const row = await prisma.milkCollection.findUnique({
     where: { id: collectionId },
     include: {
@@ -11,7 +11,7 @@ export async function shareCollectionPhotoByEmail(collectionId, toEmail) {
           id: true,
           name: true,
           farmerCode: true,
-          email: true,
+          mobile: true,
         },
       },
     },
@@ -19,20 +19,20 @@ export async function shareCollectionPhotoByEmail(collectionId, toEmail) {
 
   if (!row) throw new ApiError(404, 'Collection not found')
 
-  const recipient = (toEmail || row.farmer?.email || '').trim()
-  if (!recipient) {
-    throw new ApiError(400, 'Farmer email is missing — add email on farmer profile first')
+  const mobile = (toMobile || row.farmer?.mobile || '').trim()
+  if (!mobile) {
+    throw new ApiError(400, 'Farmer mobile is missing — add mobile on farmer profile')
   }
 
-  const result = await sendScalePhotoEmail({
-    to: recipient,
+  const result = await sendScalePhotoWhatsApp({
+    mobile,
+    scalePhotoDataUrl: row.scalePhotoDataUrl ?? null,
     farmerName: row.farmer?.name || 'Farmer',
     farmerCode: row.farmer?.farmerCode,
     weight: row.weight != null ? Number(row.weight) : null,
     session: row.session,
     collectedAt: row.collectedAt,
-    scalePhotoDataUrl: row.scalePhotoDataUrl ?? null,
   })
 
-  return { ...result, hasPhoto: Boolean(row.scalePhotoDataUrl) }
+  return { ...result, mobile, hasPhoto: Boolean(row.scalePhotoDataUrl) }
 }

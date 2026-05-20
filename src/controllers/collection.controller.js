@@ -2,6 +2,7 @@ import { asyncHandler } from '../utils/asyncHandler.js'
 import { sendSuccess, sendCreated } from '../utils/response.js'
 import * as collectionService from '../services/collection.service.js'
 import * as collectionMailService from '../services/collection.mail.service.js'
+import * as collectionWhatsAppService from '../services/collection.whatsapp.service.js'
 
 export const create = asyncHandler(async (req, res) => {
   const row = await collectionService.createCollection(req.body)
@@ -39,6 +40,17 @@ export const sharePhotoEmail = asyncHandler(async (req, res) => {
   return sendSuccess(res, {
     data: result,
     message: `Scale photo emailed to ${result.to}`,
+  })
+})
+
+export const sharePhotoWhatsApp = asyncHandler(async (req, res) => {
+  const result = await collectionWhatsAppService.shareCollectionPhotoByWhatsApp(
+    req.params.id,
+    req.body.toMobile,
+  )
+  return sendSuccess(res, {
+    data: result,
+    message: `Scale photo sent on WhatsApp to ${result.mobile}`,
   })
 })
 

@@ -1,8 +1,14 @@
 import nodemailer from 'nodemailer'
 import { env } from '../config/env.js'
 import { ApiError } from '../utils/ApiError.js'
+import {
+  formatCollectionDate,
+  formatCollectionTime,
+  formatCollectionLiters,
+} from '../utils/collectionFormat.js'
 
 function parseDataUrl(dataUrl) {
+  if (!dataUrl) return null
   const m = /^data:(image\/[a-z+]+);base64,(.+)$/i.exec(dataUrl)
   if (!m) return null
   return {
@@ -30,6 +36,36 @@ function getTransporter() {
   })
 }
 
+function buildCollectionEmailHtml({
+  farmerName,
+  farmerCode,
+  weight,
+  session,
+  collectedAt,
+  hasPhoto,
+}) {
+  const liters = formatCollectionLiters(weight)
+  const dateStr = formatCollectionDate(collectedAt)
+  const timeStr = formatCollectionTime(collectedAt)
+  const intro = hasPhoto
+    ? 'Please find the weighing machine photo for the milk collection below.'
+    : 'Milk collection details are below (no scale photo was saved for this entry).'
+
+  return `
+    <p>Hello,</p>
+    <p>${intro}</p>
+    <ul>
+      <li><strong>Farmer:</strong> ${farmerName}</li>
+      <li><strong>Code:</strong> ${farmerCode || '—'}</li>
+      <li><strong>Liters:</strong> ${liters}</li>
+      <li><strong>Session:</strong> ${session || '—'}</li>
+      <li><strong>Date:</strong> ${dateStr}</li>
+      <li><strong>Time:</strong> ${timeStr}</li>
+    </ul>
+    <p>— ${env.mailFromName}</p>
+  `
+}
+
 export async function sendScalePhotoEmail({
   to,
   farmerName,
@@ -40,42 +76,38 @@ export async function sendScalePhotoEmail({
   scalePhotoDataUrl,
 }) {
   const parsed = parseDataUrl(scalePhotoDataUrl)
-  if (!parsed) {
-    throw new ApiError(400, 'Invalid scale photo for email attachment')
-  }
+  const hasPhoto = Boolean(parsed)
 
   const transporter = getTransporter()
-  const when = collectedAt ? new Date(collectedAt).toLocaleString() : '—'
-  const liters = weight != null ? `${Number(weight).toFixed(2)} L` : '—'
-
   const subject = `Milk collection — ${farmerName} (${farmerCode || 'farmer'})`
-  const html = `
-    <p>Hello,</p>
-    <p>Please find the weighing machine photo for the milk collection below.</p>
-    <ul>
-      <li><strong>Farmer:</strong> ${farmerName}</li>
-      <li><strong>Code:</strong> ${farmerCode || '—'}</li>
-      <li><strong>Liters:</strong> ${liters}</li>
-      <li><strong>Session:</strong> ${session || '—'}</li>
-      <li><strong>Collected at:</strong> ${when}</li>
-    </ul>
-    <p>— ${env.mailFromName}</p>
-  `
+  const html = buildCollectionEmailHtml({
+    farmerName,
+    farmerCode,
+    weight,
+    session,
+    collectedAt,
+    hasPhoto,
+  })
 
-  try {
-    await transporter.sendMail({
+  const mailOptions = {
     from: `"${env.mailFromName}" <${env.mailFrom}>`,
     to,
     subject,
     html,
-    attachments: [
+  }
+
+  if (parsed) {
+    mailOptions.attachments = [
       {
         filename: `scale-${farmerCode || 'photo'}.${parsed.ext}`,
         content: parsed.buffer,
         contentType: parsed.contentType,
       },
-    ],
-    })
+    ]
+  }
+
+  try {
+    await transporter.sendMail(mailOptions)
   } catch (err) {
     const msg = String(err?.message || err)
     if (/535|BadCredentials|Username and Password not accepted/i.test(msg)) {
@@ -87,5 +119,5 @@ export async function sendScalePhotoEmail({
     throw new ApiError(502, `Email send failed: ${msg.slice(0, 200)}`)
   }
 
-  return { to, from: env.mailFrom }
+  return { to, from: env.mailFrom, hasPhoto }
 }

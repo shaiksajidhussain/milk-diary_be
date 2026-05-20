@@ -30,6 +30,15 @@ export const sharePhotoEmailRules = [
     .normalizeEmail(),
 ]
 
+export const sharePhotoWhatsAppRules = [
+  ...collectionIdParam,
+  body('toMobile')
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ min: 10, max: 15 })
+    .withMessage('toMobile must be a valid phone number'),
+]
+
 export const listCollectionsQuery = [
   query('page').optional().isInt({ min: 1 }).toInt(),
   query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),

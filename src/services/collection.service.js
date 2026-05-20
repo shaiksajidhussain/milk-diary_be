@@ -26,6 +26,7 @@ function mapCollection(row, { list = false } = {}) {
       farmerCode: row.farmer.farmerCode,
       name: row.farmer.name,
       email: row.farmer.email ?? null,
+      mobile: row.farmer.mobile ?? null,
       village: row.farmer.village,
     }
   }
@@ -55,7 +56,9 @@ export async function createCollection({
       ...(scalePhotoDataUrl ? { scalePhotoDataUrl } : {}),
     },
     include: {
-      farmer: { select: { id: true, farmerCode: true, name: true, village: true } },
+      farmer: {
+        select: { id: true, farmerCode: true, name: true, mobile: true, email: true, village: true },
+      },
     },
   })
   return mapCollection(created, { list: false })
@@ -82,7 +85,14 @@ export async function listCollections(query) {
       where,
       include: {
         farmer: {
-          select: { id: true, farmerCode: true, name: true, email: true, village: true },
+          select: {
+            id: true,
+            farmerCode: true,
+            name: true,
+            mobile: true,
+            email: true,
+            village: true,
+          },
         },
       },
       orderBy: { collectedAt: 'desc' },
@@ -118,7 +128,9 @@ export async function dailySummary(dateStr) {
     prisma.milkCollection.findMany({
       where: { collectedAt: { gte: start, lte: end } },
       include: {
-        farmer: { select: { id: true, farmerCode: true, name: true } },
+        farmer: {
+          select: { id: true, farmerCode: true, name: true, mobile: true, email: true },
+        },
       },
       orderBy: { collectedAt: 'desc' },
     }),
@@ -166,7 +178,9 @@ export async function monthlySummary(year, month, query) {
     prisma.milkCollection.findMany({
       where,
       include: {
-        farmer: { select: { id: true, farmerCode: true, name: true } },
+        farmer: {
+          select: { id: true, farmerCode: true, name: true, mobile: true, email: true },
+        },
       },
       orderBy: { collectedAt: 'desc' },
       skip,

@@ -10,6 +10,7 @@ import {
   farmerHistoryParam,
   farmerHistoryQuery,
   sharePhotoEmailRules,
+  sharePhotoWhatsAppRules,
 } from '../validators/collection.validator.js'
 import * as collectionController from '../controllers/collection.controller.js'
 
@@ -34,6 +35,12 @@ router.post(
   sharePhotoEmailRules,
   validateRequest,
   collectionController.sharePhotoEmail,
+)
+router.post(
+  '/:id/share-photo-whatsapp',
+  sharePhotoWhatsAppRules,
+  validateRequest,
+  collectionController.sharePhotoWhatsApp,
 )
 router.get('/:id', collectionIdParam, validateRequest, collectionController.getById)
 

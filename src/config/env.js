@@ -25,4 +25,7 @@ export const env = {
   smtpSecure: process.env.SMTP_SECURE === 'true',
   smtpUser: process.env.SMTP_USER || process.env.MAIL_FROM || 'kovamall001@gmail.com',
   smtpPass: (process.env.SMTP_PASS || '').replace(/\s+/g, '').trim(),
+  whatsappEnabled: process.env.WHATSAPP_ENABLED === 'true',
+  /** Optional; auto-detects Google Chrome on macOS/Linux/Windows if unset */
+  chromeExecutablePath: (process.env.CHROME_EXECUTABLE_PATH || '').trim(),
 }
